@@ -171,7 +171,7 @@ void sig_handler(int sig,siginfo_t *info,void *notused)
 	switch (sig) {
 case SIGVTALRM: /* 到达计时器所设置的计时间隔 */
 	scheduler();
-	//shijishang meigaibian
+
 	//调试二
 	#ifdef DEBUG
 		printf("SIGVTALRM RECIEVED\n");
