@@ -34,7 +34,13 @@ int main(int argc,char *argv[])
 
 	strcpy(deqcmd.data,*++argv);
 	printf("jid %s\n",deqcmd.data);
-
+	#ifdef DEBUG//µ÷ÊÔÎå
+		printf("deqcmd cmdtype\t%d(-1 means ENQ, -2means DEQ, -3 means STAT)\n"
+			"deqcmd owner\t%d\n"
+			"deqcmd defpri\t%d\n"
+			"deqcmd data\t%s\n"
+			"deqcmd argnum\t%d\n",	deqcmd.type,deqcmd.owner,deqcmd.defpri,deqcmd.data,deqcmd.argnum);
+	#endif
 	if((fd=open("/tmp/server",O_WRONLY))<0)
 		error_sys("deq open fifo failed");
 

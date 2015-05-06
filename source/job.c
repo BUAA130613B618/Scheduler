@@ -10,8 +10,8 @@
 #include <time.h>
 #include "job.h"
 
-#define DEBUG//此处用来进行调试
-
+//#define DEBUG//此处用来进行调试1-4
+//#define DEBUG6//此处用来进行启动调试6
 int jobid=0;
 int siginfo=1;
 int fifo;
@@ -20,78 +20,129 @@ int globalfd;
 struct waitqueue *head=NULL;
 struct waitqueue *next=NULL,*current =NULL;
 
-/* 调度程序 */
+/**********************调度程序*********************************/
 void scheduler()
 {
-	struct jobinfo *newjob=NULL;
-	struct jobcmd cmd;
+	struct jobinfo *newjob=NULL;		//作业信息结构体
+	struct jobcmd cmd;			//作业调度命令
 	int  count = 0;
-	bzero(&cmd,DATALEN);
+	bzero(&cmd,DATALEN);			//置字节字符串前n个字节为零且包括‘\0’
 	if((count=read(fifo,&cmd,DATALEN))<0)
 		error_sys("read fifo failed");
-#ifdef DEBUG
 
-	if(count){
+#ifdef DEBUG
+	printf("Reading whether other process send command!\n");
+	if(count)					//这些东西都是怎么直接得到的。。。
 		printf("cmd cmdtype\t%d\ncmd defpri\t%d\ncmd data\t%s\n",cmd.type,cmd.defpri,cmd.data);
-	}
 	else
 		printf("no data read\n");
 #endif
 
 	/* 更新等待队列中的作业 */
+	#ifdef DEBUG
+		printf("Update jobs int wait queue!\n");
+	#endif
 	updateall();
-
-	switch(cmd.type){
-	case ENQ:
-		do_enq(newjob,cmd);
-		break;
-	case DEQ:
-		do_deq(cmd);
-		break;
-	case STAT:
-		do_stat(cmd);
-		break;
-	default:
-		break;
+	switch(cmd.type)
+	{
+		case ENQ:
+		#ifdef DEBUG
+			printf("Excute enq!\n");
+		#endif
+			do_enq(newjob,cmd);
+			break;
+		case DEQ:
+		#ifdef DEBUG
+			printf("Execute deq!\n");
+		#endif
+			do_deq(cmd);
+			break;
+		case STAT:
+		#ifdef DEBUG
+			printf("Execute stat!\n");
+		#endif
+			do_stat(cmd);
+			break;
+		default:
+			break;
 	}
-
+	#ifdef DEBUG
+		printf("Select which job to run next!\n");
+	#endif
 	/* 选择高优先级作业 */
 	next=jobselect();
 	/* 作业切换 */
+	#ifdef DEBUG
+		printf("Switch to the next job\n");
+	#endif
 	jobswitch();
 }
-
+/**************************************************/
+/****************返回将要进队的作业号***************/
 int allocjid()
 {
 	return ++jobid;
 }
-
+/**************************************************/
+/**********更新等待队列中的作业*********************/
 void updateall()
 {
 	struct waitqueue *p;
-
+	#ifdef DEBUG6//有一个不太合适的地方就是STAT命令的data数据没有初始化，直接输出的话会是乱码
+	struct waitqueue *q;
+	int i = 0, num;
+	for(q = head, num = 1; q != NULL; q = q->next, num++){
+		printf("Before the Update\n"
+			"job%d_pid\t%d\n"
+			"job%d_cmdarg\t", num, q->job->pid, num);
+		while(true){
+			if(cuurent->job->cmdarg[i] != NULL){
+				printf("%c", cmdarg[i]);
+			}
+			else{
+				printf("\n");
+				break;
+			}`
+		}
+		printf("job%d_curpri\t%d\n"
+			"job%d_wait_time\t%d\n"
+			"job%d_runtime\t%d\n"
+			"job%d_stat\t%d(ENQ -1, DEQ -2, STAT -3)\n", num, q->job->curpri, num, q->job->wait_time, num, q->job->runtime, num,q->job->state);
+	}
+	#endif
 	/* 更新作业运行时间 */
-	if(current)
-		current->job->run_time += 1; /* 加1代表1000ms */
-
+	if(current)					//当前有任务current非NULL
+		current->job->run_time += 1; 		// 加1代表1000ms
 	/* 更新作业等待时间及优先级 */
-	for(p = head; p != NULL; p = p->next){
+	for(p = head; p != NULL; p = p->next)
+	{
 		p->job->wait_time += 1000;
-		if(p->job->wait_time >= 5000 && p->job->curpri < 3){
+		if(p->job->wait_time >= 5000 && p->job->curpri < 3)	//找出哪些等待时间过长的。
+		{
 			p->job->curpri++;
-			p->job->wait_time = 0;
+			p->job->wait_time = 0;			//不敢再等拉。。。。
 		}
 	}
+	#ifdef DEBUG6//调试六有一个不太合适的地方就是STAT命令的data数据没有初始化，直接输出的话会是乱码
+	for(q = head; q != NULL; q = q->next){
+		printf("Before the Update\n"
+			"current_runtime\t%d\n"
+			"job_new_wait_time\t%d\n"
+			"job_new_curpri\t%d\n", current->job->runtime,q->job->curpri,q->job->wait_time);
+		);
+	}
+	#endif
 }
 
-struct waitqueue* jobselect()
+struct waitqueue* jobselect()		
 {
 	struct waitqueue *p,*prev,*select,*selectprev;
 	int highest = -1;
 
 	select = NULL;
 	selectprev = NULL;
-	if(head){
+	if(head)
+	{
 		/* 遍历等待队列中的作业，找到优先级最高的作业 */
 		for(prev = head, p = head; p != NULL; prev = p,p = p->next)
 			if(p->job->curpri > highest){
@@ -103,6 +154,9 @@ struct waitqueue* jobselect()
 			if (select == selectprev)
 				head = NULL;
 	}
+#ifdef DEBUG
+	
+#endif
 	return select;
 }
 
@@ -162,40 +216,41 @@ void jobswitch()
 		return;
 	}
 }
-
+/****************************************************/
+/***************信号处理函数**************************/
 void sig_handler(int sig,siginfo_t *info,void *notused)
+//sig为信号值，第二个参数中指向siginf_t结构的指针，包含了信号携带的数据值，第三个参数一般不使用
 {
 	int status;
 	int ret;
-
-	switch (sig) {
-case SIGVTALRM: /* 到达计时器所设置的计时间隔 */
-	scheduler();
-	//shijishang meigaibian
-	//调试二
-	#ifdef DEBUG
-		printf("SIGVTALRM RECIEVED\n");
-	#endif
-
-	return;
-case SIGCHLD: /* 子进程结束时传送给父进程的信号 */
-	ret = waitpid(-1,&status,WNOHANG);
-	if (ret == 0)
-		return;
-	if(WIFEXITED(status)){
-		current->job->state = DONE;
-		printf("normal termation, exit status = %d\n",WEXITSTATUS(status));
-	}else if (WIFSIGNALED(status)){
-		printf("abnormal termation, signal number = %d\n",WTERMSIG(status));
-	}else if (WIFSTOPPED(status)){
-		printf("child stopped, signal number = %d\n",WSTOPSIG(status));
-	}
-	return;
-	default:
-		return;
+	switch (sig)
+	{
+		case SIGVTALRM: 					/* 到达计时器所设置的计时间隔 */
+			scheduler();
+			#ifdef DEBUG
+				printf("SIGVTALRM RECIEVED\n");
+			#endif
+			return;
+		case SIGCHLD: 						/* 子进程结束时传送给父进程的信号 */
+			ret = waitpid(-1,&status,WNOHANG);
+			if (ret == 0)
+				return;
+			if(WIFEXITED(status))				//判断子进程是不是正常结束
+			{
+				current->job->state = DONE;
+				printf("normal termation, exit status = %d\n",WEXITSTATUS(status)); //取得子进程返回的结束代码
+			}
+			else if (WIFSIGNALED(status))			//如果子进程异常结束
+				printf("abnormal termation, signal number = %d\n",WTERMSIG(status));
+			else if (WIFSTOPPED(status))			//如果SIGCHLD是子进程暂停发送的的信号
+				printf("child stopped, signal number = %d\n",WSTOPSIG(status));
+			return;
+		default:
+			return;
 	}
 }
-
+/*********************************************************/
+/************************进队操作*************************/
 void do_enq(struct jobinfo *newjob,struct jobcmd enqcmd)
 {
 	struct waitqueue *newnode,*p;
@@ -214,23 +269,27 @@ void do_enq(struct jobinfo *newjob,struct jobcmd enqcmd)
 	newjob->ownerid = enqcmd.owner;
 	newjob->state = READY;
 	newjob->create_time = time(NULL);
-	newjob->wait_time = 0;
-	newjob->run_time = 0;
+	newjob->wait_time = 0;				//作业在等待队列中等待的时间，初始时刻自然为零
+	newjob->run_time = 0;				//作业运行时间，初始进队，自然为零。
+	
 	arglist = (char**)malloc(sizeof(char*)*(enqcmd.argnum+1));
 	newjob->cmdarg = arglist;
+	
 	offset = enqcmd.data;
 	argvec = enqcmd.data;
-	while (i < enqcmd.argnum){
-		if(*offset == ':'){
+	while (i < enqcmd.argnum)			//这一步究竟是如何做的？以冒号为分隔取出每一个参数
+	{
+		if(*offset == ':')
+		{
 			*offset++ = '\0';
 			q = (char*)malloc(offset - argvec);
 			strcpy(q,argvec);
 			arglist[i++] = q;
 			argvec = offset;
-		}else
+		}
+		else
 			offset++;
 	}
-
 	arglist[i] = NULL;
 
 #ifdef DEBUG
@@ -246,37 +305,36 @@ void do_enq(struct jobinfo *newjob,struct jobcmd enqcmd)
 	newnode->next =NULL;
 	newnode->job=newjob;
 
-	if(head)
+	if(head)		//说明当前等待队列中是有作业的
 	{
-		for(p=head;p->next != NULL; p=p->next);
+		for(p=head;p->next != NULL; p=p->next)
+			;
 		p->next =newnode;
-	}else
+	}
+	else
 		head=newnode;
 
 	/*为作业创建进程*/
 	if((pid=fork())<0)
 		error_sys("enq fork failed");
+	if(pid==0)				//子进程
+	{
+		newjob->pid =getpid();		//得到当前进程的pid
+		raise(SIGSTOP);			/*阻塞子进程,等等执行*/
 
-	if(pid==0){
-		newjob->pid =getpid();
-		/*阻塞子进程,等等执行*/
-		raise(SIGSTOP);
 #ifdef DEBUG
-
 		printf("begin running\n");
 		for(i=0;arglist[i]!=NULL;i++)
 			printf("arglist %s\n",arglist[i]);
 #endif
 
-		/*复制文件描述符到标准输出*/
-		dup2(globalfd,1);
-		/* 执行命令 */
-		if(execv(arglist[0],arglist)<0)
+		dup2(globalfd,1);			//复制文件描述符到标准输出
+		if(execv(arglist[0],arglist)<0)		// 执行命令
 			printf("exec failed\n");
 		exit(1);
-	}else{
-		newjob->pid=pid;
 	}
+	else					//父进程
+		newjob->pid=pid;
 }
 
 void do_deq(struct jobcmd deqcmd)
@@ -289,11 +347,13 @@ void do_deq(struct jobcmd deqcmd)
 	printf("deq jid %d\n",deqid);
 #endif
 
-	/*current jodid==deqid,终止当前作业*/
-	if (current && current->job->jid ==deqid){
+
+	if (current && current->job->jid ==deqid)	//current jobid==deqid,终止当前作业，说明当前正在执行的作业就是我们要删除的作业
+	{
 		printf("teminate current job\n");
 		kill(current->job->pid,SIGKILL);
-		for(i=0;(current->job->cmdarg)[i]!=NULL;i++){
+		for(i=0;(current->job->cmdarg)[i]!=NULL;i++)
+		{
 			free((current->job->cmdarg)[i]);
 			(current->job->cmdarg)[i]=NULL;
 		}
@@ -302,22 +362,27 @@ void do_deq(struct jobcmd deqcmd)
 		free(current);
 		current=NULL;
 	}
-	else{ /* 或者在等待队列中查找deqid */
+	else						//或者在等待队列中查找deqid
+	{ 
 		select=NULL;
 		selectprev=NULL;
-		if(head){
+		if(head)
+		{
 			for(prev=head,p=head;p!=NULL;prev=p,p=p->next)
-				if(p->job->jid==deqid){
+				if(p->job->jid==deqid)
+				{
 					select=p;
 					selectprev=prev;
 					break;
 				}
-				selectprev->next=select->next;
-				if(select==selectprev)
-					head=NULL;
+			selectprev->next=select->next;
+			if(select==selectprev)			//说明等待队列中就一个作业
+				head=NULL;
 		}
-		if(select){
-			for(i=0;(select->job->cmdarg)[i]!=NULL;i++){
+		if(select)					//如果不是一个作业的话
+		{
+			for(i=0;(select->job->cmdarg)[i]!=NULL;i++)
+			{
 				free((select->job->cmdarg)[i]);
 				(select->job->cmdarg)[i]=NULL;
 			}
@@ -371,35 +436,31 @@ void do_stat(struct jobcmd statcmd)
 			"READY");
 	}
 }
-
+/**********************************************************/
+/********************主函数入口****************************/
 int main()
 {
-	struct timeval interval;
-	struct itimerval new,old;
-	struct stat statbuf;
-	struct sigaction newact,oldact1,oldact2;
-	
+	struct timeval interval;		//timeval结构体用于指定时间值，iterval间隔
+	struct itimerval new,old;		//itimeval，一个用于指定间隔时间结构体
+	struct stat statbuf;			//定义stat结构体
+	struct sigaction newact,oldact1,oldact2;//定义信号
 	//调试一
 	#ifdef DEBUG
 		printf("DEBUG IS OPEN!\n");
-	#endif
-	
-	if(stat("/tmp/server",&statbuf)==0){
-		/* 如果FIFO文件存在,删掉 */
+	#endif	
+	if(stat("/tmp/server",&statbuf)==0)	//如果FIFO文件存在,删掉
+	{
 		if(remove("/tmp/server")<0)
 			error_sys("remove failed");
 	}
-
-	if(mkfifo("/tmp/server",0666)<0)
+	if(mkfifo("/tmp/server",0666)<0)	//建立特殊的FIFO文件
 		error_sys("mkfifo failed");
-	/* 在非阻塞模式下打开FIFO */
-	if((fifo=open("/tmp/server",O_RDONLY|O_NONBLOCK))<0)
+	if((fifo=open("/tmp/server",O_RDONLY|O_NONBLOCK))<0)	//在非阻塞模式下打开FIFO
 		error_sys("open fifo failed");
-
 	/* 建立信号处理函数 */
-	newact.sa_sigaction=sig_handler;
-	sigemptyset(&newact.sa_mask);
-	newact.sa_flags=SA_SIGINFO;
+	newact.sa_sigaction=sig_handler;	//sig信号，action动作，信号到达之后的动作，即信号处理函数。
+	sigemptyset(&newact.sa_mask);		//将sa_mask信号集初始化，并且清空。
+	newact.sa_flags=SA_SIGINFO;		//表明使用sa_sigcation信号处理函数 
 	sigaction(SIGCHLD,&newact,&oldact1);
 	sigaction(SIGVTALRM,&newact,&oldact2);
 
@@ -409,10 +470,9 @@ int main()
 
 	new.it_interval=interval;
 	new.it_value=interval;
-	setitimer(ITIMER_VIRTUAL,&new,&old);
-
-	while(siginfo==1);
-
+	setitimer(ITIMER_VIRTUAL,&new,&old);	//第二种计时器，进程执行的时间
+	while(siginfo==1)			//死循环。
+		;
 	close(fifo);
 	close(globalfd);
 	return 0;

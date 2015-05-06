@@ -25,11 +25,11 @@ enum cmdtype{
     ENQ=-1,DEQ=-2,STAT=-3 
 };
 struct jobcmd{
-    enum cmdtype type;
-    int argnum;
-    int owner;
-    int defpri;
-    char data[BUFLEN];
+    enum cmdtype type;		//命令类型	
+    int argnum;			//参数个数
+    int owner;			//拥有者		
+    int defpri;			//
+    char data[BUFLEN];		//存储数据
 };
 
 #define DATALEN sizeof(struct jobcmd)
