@@ -10,7 +10,6 @@
 #include <time.h>
 #include "job.h"
 
-#define DEBUG//此处用来进行调试1-4
 int jobid=0;
 int siginfo=1;
 int fifo;
