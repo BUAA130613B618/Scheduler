@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include "job.h"
 
+#define DEBUG
 /* 
  * ÃüÁîÓï·¨¸ñÊ½
  *     deq jid
