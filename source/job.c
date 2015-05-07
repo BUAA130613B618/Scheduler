@@ -10,8 +10,10 @@
 #include <time.h>
 #include "job.h"
 
-//#define DEBUG//此处用来进行调试1-4
-//#define DEBUG6//此处用来进行启动调试6
+//#define DEBUG6
+// #define DEBUG7
+#define DEBUG8
+
 int jobid=0;
 int siginfo=1;
 int fifo;
@@ -25,6 +27,10 @@ void scheduler()
 {
 	struct jobinfo *newjob=NULL;		//作业信息结构体
 	struct jobcmd cmd;			//作业调度命令
+#ifdef DEBUG7
+	struct waitqueue *p;
+	int num, i = 0;
+#endif
 	int  count = 0;
 	bzero(&cmd,DATALEN);			//置字节字符串前n个字节为零且包括‘\0’
 	if((count=read(fifo,&cmd,DATALEN))<0)
@@ -39,42 +45,114 @@ void scheduler()
 #endif
 
 	/* 更新等待队列中的作业 */
-	#ifdef DEBUG
-		printf("Update jobs int wait queue!\n");
-	#endif
+#ifdef DEBUG
+	printf("Update jobs in wait queue!\n");
+#endif
 	updateall();
 	switch(cmd.type)
 	{
 		case ENQ:
-		#ifdef DEBUG
-			printf("Excute enq!\n");
-		#endif
+			#ifdef DEBUG
+				printf("Execute enq!\n");
+			#endif
+#ifdef DEBUG7
+		printf("Before the ENQ\n");
+	for(p = head, num = 1; p != NULL; p = p->next, num++)
+		printf(	"job%d_jid\t%d\n"
+			"job%d_pid\t%d\n"
+			"0\n"
+			"job%d_defpri\t%d\n"
+			"job%d_curpri\t%d\n"
+			"job%d_ownerid\t%d\n"
+			"job%d_wait_time\t%d\n"
+			"job%d_run_time\t%d\n", num, p->job->jid, num, p->job->pid, num, p->job->defpri, num, p->job->curpri, num, p->job->ownerid, num, p->job->wait_time, num, p->job->run_time);
+#endif
 			do_enq(newjob,cmd);
+#ifdef DEBUG7
+		printf("After the ENQ!\n");
+	for(p = head, num = 1; p != NULL; p = p->next, num++)
+		printf("job%d_jid\t%d\n"
+			"job%d_pid\t%d\n"
+			"0\n"
+			"job%d_defpri\t%d\n"
+			"job%d_curpri\t%d\n"
+			"job%d_ownerid\t%d\n"
+			"job%d_wait_time\t%d\n"
+			"job%d_run_time\t%d\n", num, p->job->jid, num, p->job->pid, num, p->job->defpri, num, p->job->curpri, num, p->job->ownerid, num, p->job->wait_time, num, p->job->run_time);
+#endif
 			break;
 		case DEQ:
-		#ifdef DEBUG
-			printf("Execute deq!\n");
-		#endif
+			#ifdef DEBUG
+				printf("Execute deq!\n");
+			#endif
+#ifdef DEBUG7
+		printf("Before the DEQ!\n");
+	for(p = head, num = 1; p != NULL; p = p->next, num++)
+		printf("job%d_jid\t%d\n"
+			"job%d_pid\t%d\n"
+			"0\n"
+			"job%d_defpri\t%d\n"
+			"job%d_curpri\t%d\n"
+			"job%d_ownerid\t%d\n"
+			"job%d_wait_time\t%d\n"
+			"job%d_run_time\t%d\n", num, p->job->jid, num, p->job->pid, num, p->job->defpri, num, p->job->curpri, num, p->job->ownerid, num, p->job->wait_time, num, p->job->run_time);
+#endif
 			do_deq(cmd);
+#ifdef DEBUG7
+			printf("After the DEQ!\n");
+	for(p = head, num = 1; p != NULL; p = p->next, num++)
+		printf("job%d_jid\t%d\n"
+			"job%d_pid\t%d\n"
+			"0\n"
+			"job%d_defpri\t%d\n"
+			"job%d_curpri\t%d\n"
+			"job%d_ownerid\t%d\n"
+			"job%d_wait_time\t%d\n"
+			"job%d_run_time\t%d\n", num, p->job->jid, num, p->job->pid, num, p->job->defpri, num, p->job->curpri, num, p->job->ownerid, num, p->job->wait_time, num, p->job->run_time);
+#endif
 			break;
 		case STAT:
-		#ifdef DEBUG
-			printf("Execute stat!\n");
-		#endif
+			#ifdef DEBUG
+				printf("Execute stat!\n");
+			#endif
+#ifdef DEBUG7
+		printf("Before the STAT!\n");
+	for(p = head, num = 1; p != NULL; p = p->next, num++)
+		printf("job%d_jid\t%d\n"
+			"job%d_pid\t%d\n"
+			"0\n"
+			"job%d_defpri\t%d\n"
+			"job%d_curpri\t%d\n"
+			"job%d_ownerid\t%d\n"
+			"job%d_wait_time\t%d\n"
+			"job%d_run_time\t%d\n", num, p->job->jid, num, p->job->pid, num, p->job->defpri, num, p->job->curpri, num, p->job->ownerid, num, p->job->wait_time, num, p->job->run_time);
+#endif
 			do_stat(cmd);
+#ifdef DEBUG7
+		printf("After the STAT!\n");
+	for(p = head, num = 1; p != NULL; p = p->next, num++)
+		printf("job%d_jid\t%d\n"
+			"job%d_pid\t%d\n"
+			"0\n"
+			"job%d_defpri\t%d\n"
+			"job%d_curpri\t%d\n"
+			"job%d_ownerid\t%d\n"
+			"job%d_wait_time\t%d\n"
+			"job%d_run_time\t%d\n", num, p->job->jid, num, p->job->pid, num, p->job->defpri, num, p->job->curpri, num, p->job->ownerid, num, p->job->wait_time, num, p->job->run_time);
+#endif
 			break;
 		default:
 			break;
 	}
-	#ifdef DEBUG
-		printf("Select which job to run next!\n");
-	#endif
 	/* 选择高优先级作业 */
+#ifdef DEBUG
+	printf("Select which job to next!\n");
+#endif
 	next=jobselect();
 	/* 作业切换 */
-	#ifdef DEBUG
-		printf("Switch to the next job\n");
-	#endif
+#ifdef DEBUG
+	printf("Switch to the next job!\n");
+#endif
 	jobswitch();
 }
 /**************************************************/
@@ -88,29 +166,20 @@ int allocjid()
 void updateall()
 {
 	struct waitqueue *p;
-	#ifdef DEBUG6//有一个不太合适的地方就是STAT命令的data数据没有初始化，直接输出的话会是乱码
-	struct waitqueue *q;
-	int i = 0, num;
-	for(q = head, num = 1; q != NULL; q = q->next, num++){
-		printf("Before the Update\n"
-			"job%d_pid\t%d\n"
-			"job%d_cmdarg\t", num, q->job->pid, num);
-		while(true){
-			if(cuurent->job->cmdarg[i] != NULL){
-				printf("%c", cmdarg[i]);
-			}
-			else{
-				printf("\n");
-				break;
-			}`
-		}
-		printf("job%d_curpri\t%d\n"
-			"job%d_wait_time\t%d\n"
-			"job%d_runtime\t%d\n"
-			"job%d_stat\t%d(ENQ -1, DEQ -2, STAT -3)\n", num, q->job->curpri, num, q->job->wait_time, num, q->job->runtime, num,q->job->state);
-	}
-	#endif
 	/* 更新作业运行时间 */
+#ifdef DEBUG6
+	int num, i = 0;
+	for(p = head, num = 1; p != NULL; p = p->next, num++)
+		printf("Before the updata!\n"
+			"job%d_jid\t%d\n"
+			"job%d_pid\t%d\n"
+			"0\n"
+			"job%d_defpri\t%d\n"
+			"job%d_curpri\t%d\n"
+			"job%d_ownerid\t%d\n"
+			"job%d_wait_time\t%d\n"
+			"job%d_run_time\t%d\n", num, p->job->jid, num, p->job->pid, num, p->job->defpri, num, p->job->curpri, num, p->job->ownerid, num, p->job->wait_time, num, p->job->run_time);
+#endif
 	if(current)					//当前有任务current非NULL
 		current->job->run_time += 1; 		// 加1代表1000ms
 	/* 更新作业等待时间及优先级 */
@@ -123,15 +192,18 @@ void updateall()
 			p->job->wait_time = 0;			//不敢再等拉。。。。
 		}
 	}
-	#ifdef DEBUG6//调试六有一个不太合适的地方就是STAT命令的data数据没有初始化，直接输出的话会是乱码
-	for(q = head; q != NULL; q = q->next){
-		printf("Before the Update\n"
-			"current_runtime\t%d\n"
-			"job_new_wait_time\t%d\n"
-			"job_new_curpri\t%d\n", current->job->runtime,q->job->curpri,q->job->wait_time);
-		);
-	}
-	#endif
+#ifdef DEBUG6
+	for(p = head, num = 1; p != NULL; p = p->next, num++)
+		printf("After the updata!\n"
+			"job%d_jid\t%d\n"
+			"job%d_pid\t%d\n"
+			"0\n"
+			"job%d_defpri\t%d\n"
+			"job%d_curpri\t%d\n"
+			"job%d_ownerid\t%d\n"
+			"job%d_wait_time\t%d\n"
+			"job%d_run_time\t%d\n", num, p->job->jid, num, p->job->pid, num, p->job->defpri, num, p->job->curpri, num, p->job->ownerid, num, p->job->wait_time, num, p->job->run_time);
+#endif
 }
 
 struct waitqueue* jobselect()		
@@ -154,8 +226,17 @@ struct waitqueue* jobselect()
 			if (select == selectprev)
 				head = NULL;
 	}
-#ifdef DEBUG
-	
+#ifdef DEBUG8
+	if(select != NULL)
+	printf("Select job's information!\n"
+			"job_jid\t%d\n"
+			"job_pid\t%d\n"
+			"job_cmdarg\t0\n"
+			"job_defpri\t%d\n"
+			"job_curpri\t%d\n"
+			"job_ownerid\t%d\n"
+			"job_wait_time\t%d\n"
+			"job_run_time\t%d\n", select->job->jid, select->job->pid, select->job->defpri, select->job->curpri, select->job->ownerid,  select->job->wait_time, select->job->run_time);
 #endif
 	return select;
 }
@@ -228,7 +309,7 @@ void sig_handler(int sig,siginfo_t *info,void *notused)
 		case SIGVTALRM: 					/* 到达计时器所设置的计时间隔 */
 			scheduler();
 			#ifdef DEBUG
-				printf("SIGVTALRM RECIEVED\n");
+				printf("SIGVTALRM RECEIVED!\n");
 			#endif
 			return;
 		case SIGCHLD: 						/* 子进程结束时传送给父进程的信号 */
