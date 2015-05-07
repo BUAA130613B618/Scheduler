@@ -10,8 +10,7 @@
 #include <time.h>
 #include "job.h"
 
-//#define DEBUG//此处用来进行调试1-4
-//#define DEBUG6//此处用来进行启动调试6
+#define DEBUG//此处用来进行调试1-4
 int jobid=0;
 int siginfo=1;
 int fifo;
@@ -31,7 +30,6 @@ void scheduler()
 		error_sys("read fifo failed");
 
 #ifdef DEBUG
-	printf("Reading whether other process send command!\n");
 	if(count)					//这些东西都是怎么直接得到的。。。
 		printf("cmd cmdtype\t%d\ncmd defpri\t%d\ncmd data\t%s\n",cmd.type,cmd.defpri,cmd.data);
 	else
@@ -39,42 +37,24 @@ void scheduler()
 #endif
 
 	/* 更新等待队列中的作业 */
-	#ifdef DEBUG
-		printf("Update jobs int wait queue!\n");
-	#endif
 	updateall();
 	switch(cmd.type)
 	{
 		case ENQ:
-		#ifdef DEBUG
-			printf("Excute enq!\n");
-		#endif
 			do_enq(newjob,cmd);
 			break;
 		case DEQ:
-		#ifdef DEBUG
-			printf("Execute deq!\n");
-		#endif
 			do_deq(cmd);
 			break;
 		case STAT:
-		#ifdef DEBUG
-			printf("Execute stat!\n");
-		#endif
 			do_stat(cmd);
 			break;
 		default:
 			break;
 	}
-	#ifdef DEBUG
-		printf("Select which job to run next!\n");
-	#endif
 	/* 选择高优先级作业 */
 	next=jobselect();
 	/* 作业切换 */
-	#ifdef DEBUG
-		printf("Switch to the next job\n");
-	#endif
 	jobswitch();
 }
 /**************************************************/
@@ -88,28 +68,6 @@ int allocjid()
 void updateall()
 {
 	struct waitqueue *p;
-	#ifdef DEBUG6//有一个不太合适的地方就是STAT命令的data数据没有初始化，直接输出的话会是乱码
-	struct waitqueue *q;
-	int i = 0, num;
-	for(q = head, num = 1; q != NULL; q = q->next, num++){
-		printf("Before the Update\n"
-			"job%d_pid\t%d\n"
-			"job%d_cmdarg\t", num, q->job->pid, num);
-		while(true){
-			if(cuurent->job->cmdarg[i] != NULL){
-				printf("%c", cmdarg[i]);
-			}
-			else{
-				printf("\n");
-				break;
-			}`
-		}
-		printf("job%d_curpri\t%d\n"
-			"job%d_wait_time\t%d\n"
-			"job%d_runtime\t%d\n"
-			"job%d_stat\t%d(ENQ -1, DEQ -2, STAT -3)\n", num, q->job->curpri, num, q->job->wait_time, num, q->job->runtime, num,q->job->state);
-	}
-	#endif
 	/* 更新作业运行时间 */
 	if(current)					//当前有任务current非NULL
 		current->job->run_time += 1; 		// 加1代表1000ms
@@ -123,15 +81,6 @@ void updateall()
 			p->job->wait_time = 0;			//不敢再等拉。。。。
 		}
 	}
-	#ifdef DEBUG6//调试六有一个不太合适的地方就是STAT命令的data数据没有初始化，直接输出的话会是乱码
-	for(q = head; q != NULL; q = q->next){
-		printf("Before the Update\n"
-			"current_runtime\t%d\n"
-			"job_new_wait_time\t%d\n"
-			"job_new_curpri\t%d\n", current->job->runtime,q->job->curpri,q->job->wait_time);
-		);
-	}
-	#endif
 }
 
 struct waitqueue* jobselect()		
@@ -154,9 +103,6 @@ struct waitqueue* jobselect()
 			if (select == selectprev)
 				head = NULL;
 	}
-#ifdef DEBUG
-	
-#endif
 	return select;
 }
 
@@ -227,9 +173,6 @@ void sig_handler(int sig,siginfo_t *info,void *notused)
 	{
 		case SIGVTALRM: 					/* 到达计时器所设置的计时间隔 */
 			scheduler();
-			#ifdef DEBUG
-				printf("SIGVTALRM RECIEVED\n");
-			#endif
 			return;
 		case SIGCHLD: 						/* 子进程结束时传送给父进程的信号 */
 			ret = waitpid(-1,&status,WNOHANG);
