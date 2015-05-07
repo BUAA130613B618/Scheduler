@@ -10,6 +10,7 @@
 #include <time.h>
 #include "job.h"
 
+#define DEBUG//此处用来进行调试1-4
 int jobid=0;
 int siginfo=1;
 int fifo;
@@ -29,7 +30,6 @@ void scheduler()
 		error_sys("read fifo failed");
 
 #ifdef DEBUG
-	printf("Reading whether other process send command!\n");
 	if(count)					//这些东西都是怎么直接得到的。。。
 		printf("cmd cmdtype\t%d\ncmd defpri\t%d\ncmd data\t%s\n",cmd.type,cmd.defpri,cmd.data);
 	else
@@ -37,42 +37,24 @@ void scheduler()
 #endif
 
 	/* 更新等待队列中的作业 */
-#ifdef DEBUG
-	printf("Update jobs in wait queue!\n");
-#endif
 	updateall();
 	switch(cmd.type)
 	{
 		case ENQ:
-			#ifdef DEBUG
-				printf("Execute enq!\n");
-			#endif
 			do_enq(newjob,cmd);
 			break;
 		case DEQ:
-			#ifdef DEBUG
-				printf("Execute deq!\n");
-			#endif
 			do_deq(cmd);
 			break;
 		case STAT:
-			#ifdef DEBUG
-				printf("Execute stat!\n");
-			#endif
 			do_stat(cmd);
 			break;
 		default:
 			break;
 	}
 	/* 选择高优先级作业 */
-#ifdef DEBUG
-	printf("Select which job to next!\n");
-#endif
 	next=jobselect();
 	/* 作业切换 */
-#ifdef DEBUG
-	printf("Switch to the next job!\n");
-#endif
 	jobswitch();
 }
 /**************************************************/
@@ -191,9 +173,6 @@ void sig_handler(int sig,siginfo_t *info,void *notused)
 	{
 		case SIGVTALRM: 					/* 到达计时器所设置的计时间隔 */
 			scheduler();
-			#ifdef DEBUG
-				printf("SIGVTALRM RECEIVED!\n");
-			#endif
 			return;
 		case SIGCHLD: 						/* 子进程结束时传送给父进程的信号 */
 			ret = waitpid(-1,&status,WNOHANG);
