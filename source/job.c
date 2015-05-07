@@ -30,6 +30,7 @@ void scheduler()
 		error_sys("read fifo failed");
 
 #ifdef DEBUG
+	printf("Reading whether other process send command!\n");
 	if(count)					//这些东西都是怎么直接得到的。。。
 		printf("cmd cmdtype\t%d\ncmd defpri\t%d\ncmd data\t%s\n",cmd.type,cmd.defpri,cmd.data);
 	else
@@ -37,24 +38,42 @@ void scheduler()
 #endif
 
 	/* 更新等待队列中的作业 */
+#ifdef DEBUG
+	printf("Update jobs in wait queue!\n");
+#endif
 	updateall();
 	switch(cmd.type)
 	{
 		case ENQ:
+			#ifdef DEBUG
+				printf("Execute enq!\n");
+			#endif
 			do_enq(newjob,cmd);
 			break;
 		case DEQ:
+			#ifdef DEBUG
+				printf("Execute deq!\n");
+			#endif
 			do_deq(cmd);
 			break;
 		case STAT:
+			#ifdef DEBUG
+				printf("Execute stat!\n");
+			#endif
 			do_stat(cmd);
 			break;
 		default:
 			break;
 	}
 	/* 选择高优先级作业 */
+#ifdef DEBUG
+	printf("Select which job to next!\n");
+#endif
 	next=jobselect();
 	/* 作业切换 */
+#ifdef DEBUG
+	printf("Switch to the next job!\n");
+#endif
 	jobswitch();
 }
 /**************************************************/
