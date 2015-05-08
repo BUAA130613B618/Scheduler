@@ -174,28 +174,30 @@ case SIGVTALRM: /* 到达计时器所设置的计时间隔 */
 case SIGCHLD: /* 子进程结束时传送给父进程的信号 */
 	ret = waitpid(-1,&status,WNOHANG);
 	if (ret == 0) {
-		#ifdef DEBUG10
-			printf("Current job is:\n");
-			printf("JOBID\tPID\tOWNER\tRUNTIME\tWAITTIME\n");
-			printf("%d\t%d\t%d\t%d\t%d\n",
-				current->job->jid,
-				current->job->pid,
-				current->job->ownerid,
-				current->job->run_time,
-				current->job->wait_time);
-			printf("Wait_Queue:\n");
-			struct waitqueue *p;
-			for (p = head; p != NULL; p = p->next) {
-				printf("JOBID\tPID\tCURPRI\tOWNER\tRUNTIME\tWAITTIME\n");
-				printf("%d\t%d\t%d\t%d\t%d\t%d\n",
-					p->job->jid,
-					p->job->pid,
-					p->job->curpri,
-					p->job->ownerid,
-					p->job->run_time,
-					p->job->wait_time);
-			}
-		#endif
+#ifdef DEBUG10
+	printf("Current job is:\n");
+	printf("JOBID\tPID\tOWNER\tRUNTIME\tWAITTIME\n");
+	printf("%d\t%d\t%d\t%d\t%d\n",
+		current->job->jid,
+		current->job->pid,
+		current->job->ownerid,
+		current->job->run_time,
+		current->job->wait_time);
+	printf("Wait_Queue:\n");
+	struct waitqueue *p;
+	for (p = head; p != NULL; p = p->next) {
+		printf("JOBID\tPID\tCURPRI\tOWNER\tRUNTIME\tWAITTIME\n");
+		printf("%d\t%d\t%d\t%d\t%d\t%d\n",
+			p->job->jid,
+			p->job->pid,
+			p->job->curpri,
+			p->job->ownerid,
+			p->job->run_time,
+			p->job->wait_time);
+	}
+#endif
+
+
 		return;
 	}
 	if(WIFEXITED(status)){
@@ -206,28 +208,30 @@ case SIGCHLD: /* 子进程结束时传送给父进程的信号 */
 	}else if (WIFSTOPPED(status)){
 		printf("child stopped, signal number = %d\n",WSTOPSIG(status));
 	}
-	#ifdef DEBUG10
-		printf("Current job is:\n");
-		printf("JOBID\tPID\tOWNER\tRUNTIME\tWAITTIME\n");
-		printf("%d\t%d\t%d\t%d\t%d\n",
-			current->job->jid,
-			current->job->pid,
-			current->job->ownerid,
-			current->job->run_time,
-			current->job->wait_time);
-		printf("Wait_Queue:\n");
-		struct waitqueue *p;
-		for (p = head; p != NULL; p = p->next) {
-			printf("JOBID\tPID\tCURPRI\tOWNER\tRUNTIME\tWAITTIME\n");
-			printf("%d\t%d\t%d\t%d\t%d\t%d\n",
-				p->job->jid,
-				p->job->pid,
-				p->job->curpri,
-				p->job->ownerid,
-				p->job->run_time,
-				p->job->wait_time);
-		}
-	#endif
+#ifdef DEBUG10
+	printf("Current job is:\n");
+	printf("JOBID\tPID\tOWNER\tRUNTIME\tWAITTIME\n");
+	printf("%d\t%d\t%d\t%d\t%d\n",
+		current->job->jid,
+		current->job->pid,
+		current->job->ownerid,
+		current->job->run_time,
+		current->job->wait_time);
+	printf("Wait_Queue:\n");
+	struct waitqueue *p;
+	for (p = head; p != NULL; p = p->next) {
+		printf("JOBID\tPID\tCURPRI\tOWNER\tRUNTIME\tWAITTIME\n");
+		printf("%d\t%d\t%d\t%d\t%d\t%d\n",
+			p->job->jid,
+			p->job->pid,
+			p->job->curpri,
+			p->job->ownerid,
+			p->job->run_time,
+			p->job->wait_time);
+	}
+#endif
+
+
 	return;
 	default:
 		return;

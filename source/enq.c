@@ -9,7 +9,7 @@
 /* 
  * 命令语法格式
  *     enq [-p num] e_file args
- */ 
+ */
 void usage()
 {
 	printf("Usage: enq[-p num] e_file args\n"
@@ -64,13 +64,13 @@ int main(int argc,char *argv[])
 		offset=offset+strlen(*argv)+1;
 		argv++;
 	}
-//调试四
+
     #ifdef DEBUG
-		printf("enqcmd cmdtype\t%d(-1 means ENQ, -2means DEQ, -3 means STAT)\n"
+		printf("enqcmd cmdtype\t%d\n"
 			"enqcmd owner\t%d\n"
 			"enqcmd defpri\t%d\n"
-			"enqcmd data\t%s\n"
-			"enqcmd argnum\t%d\n",	enqcmd.type,enqcmd.owner,enqcmd.defpri,enqcmd.data,enqcmd.argnum);
+			"enqcmd data\t%s\n",
+			enqcmd.type,enqcmd.owner,enqcmd.defpri,enqcmd.data);
 
     #endif 
 

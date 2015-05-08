@@ -7,7 +7,7 @@
 #include <stdarg.h>
 #include <signal.h>
 #include <sys/types.h>
- 
+
 #ifndef DEBUG
 #define DEBUG
 #endif
@@ -25,11 +25,11 @@ enum cmdtype{
     ENQ=-1,DEQ=-2,STAT=-3 
 };
 struct jobcmd{
-    enum cmdtype type;		//命令类型	
-    int argnum;			//参数个数
-    int owner;			//拥有者		
-    int defpri;			//
-    char data[BUFLEN];		//存储数据
+    enum cmdtype type;
+    int argnum;
+    int owner;
+    int defpri;
+    char data[BUFLEN];
 };
 
 #define DATALEN sizeof(struct jobcmd)

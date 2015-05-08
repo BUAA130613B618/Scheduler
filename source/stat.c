@@ -9,7 +9,7 @@
 /* 
  * 命令语法格式
  *     stat
- */ 
+ */
 void usage()
 {
 	printf("Usage: stat\n");		
@@ -30,13 +30,7 @@ int main(int argc,char *argv[])
 	statcmd.defpri=0;
 	statcmd.owner=getuid();
 	statcmd.argnum=0;
-   	 #ifdef DEBUG//调试五
-		printf("statcmd cmdtype\t%d(-1 means stat, -2means DEQ, -3 means STAT)\n"
-			"statcmd owner\t%d\n"
-			"statcmd defpri\t%d\n"//这里不需要data
-			"statcmd argnum\t%d\n",	statcmd.type,statcmd.owner,statcmd.defpri,statcmd.argnum);
 
-   	 #endif 
 	if((fd=open("/tmp/server",O_WRONLY))<0)
 		error_sys("stat open fifo failed");
 

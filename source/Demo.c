@@ -1,6 +1,6 @@
 #include "time.h"
 #include <stdio.h>
- 
+
 void main()
 {
   time_t timer,timerc;
