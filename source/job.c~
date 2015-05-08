@@ -23,6 +23,7 @@ int globalfd;
 
 struct waitqueue *head=NULL;
 struct waitqueue *next=NULL,*current =NULL;
+struct waitqueue *high = NULL, *mid = NULL, *low = NULL;
 
 /**********************µ÷¶È³ÌÐò*********************************/
 void scheduler()
