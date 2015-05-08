@@ -1,7 +1,7 @@
 #include <string.h>
 #include <errno.h>
 #include "job.h"
- 
+
 /* ´íÎó´¦Àí */
 void error_doit(int errnoflag,const char *fmt,va_list ap)
 {

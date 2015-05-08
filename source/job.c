@@ -11,8 +11,15 @@
 #include "job.h"
 
 //#define DEBUG6
+<<<<<<< HEAD
 //#define DEBUG7
 //#define DEBUG8
+=======
+// #define DEBUG7
+
+
+#define DEBUG8
+>>>>>>> origin/master
 
 int jobid=0;
 int siginfo=1;
@@ -166,7 +173,11 @@ int allocjid()
 /**********更新等待队列中的作业*********************/
 void updateall()
 {
+<<<<<<< HEAD
 	struct waitqueue *p, *prev, *q;//prev用来存储进行被提升等级的项的前一项
+=======
+	struct waitqueue *p;
+>>>>>>> origin/master
 	/* 更新作业运行时间 */
 #ifdef DEBUG6
 	int num, i = 0;
@@ -232,7 +243,11 @@ void updateall()
 			p->job->curpri++;
 			p->job->wait_time = 0;			//不敢再等拉。。。。
 		}
+<<<<<<< HEAD
 	}*/
+=======
+	}
+>>>>>>> origin/master
 #ifdef DEBUG6
 	for(p = head, num = 1; p != NULL; p = p->next, num++)
 		printf("After the updata!\n"
@@ -279,7 +294,11 @@ struct waitqueue* jobselect()
 			selectprev->next = select->next;
 			if (select == selectprev)
 				head = NULL;
+<<<<<<< HEAD
 	}*/
+=======
+	}
+>>>>>>> origin/master
 #ifdef DEBUG8
 	if(select != NULL)
 	printf("Select job's information!\n"

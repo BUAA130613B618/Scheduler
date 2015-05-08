@@ -10,7 +10,7 @@
 /* 
  * ÃüÁîÓï·¨¸ñÊ½
  *     stat
- */ 
+ */
 void usage()
 {
 	printf("Usage: stat\n");		

@@ -9,7 +9,7 @@
 /* 
  * ÃüÁîÓï·¨¸ñÊ½
  *     enq [-p num] e_file args
- */ 
+ */
 void usage()
 {
 	printf("Usage: enq[-p num] e_file args\n"
