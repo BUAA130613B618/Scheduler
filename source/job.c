@@ -11,7 +11,8 @@
 #include "job.h"
 
 //#define DEBUG6
-#define DEBUG7
+//#define DEBUG7
+#define DEBUG8
 
 int jobid=0;
 int siginfo=1;
@@ -225,6 +226,18 @@ struct waitqueue* jobselect()
 			if (select == selectprev)
 				head = NULL;
 	}
+#ifdef DEBUG8
+	if(select != NULL)
+	printf("Select job's information!\n"
+			"job_jid\t%d\n"
+			"job_pid\t%d\n"
+			"job_cmdarg\t0\n"
+			"job_defpri\t%d\n"
+			"job_curpri\t%d\n"
+			"job_ownerid\t%d\n"
+			"job_wait_time\t%d\n"
+			"job_run_time\t%d\n", select->job->jid, select->job->pid, select->job->defpri, select->job->curpri, select->job->ownerid,  select->job->wait_time, select->job->run_time);
+#endif
 	return select;
 }
 
