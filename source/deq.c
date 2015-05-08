@@ -5,11 +5,6 @@
 #include <sys/ipc.h>
 #include <fcntl.h>
 #include "job.h"
-<<<<<<< HEAD
-
-=======
- 
->>>>>>> origin/master
 #define DEBUG
 /* 
  * ÃüÁîÓï·¨¸ñÊ½
