@@ -11,7 +11,8 @@
 #include "job.h"
 
 //#define DEBUG6
-#define DEBUG7
+//#define DEBUG7
+//#define DEBUG8
 
 int jobid=0;
 int siginfo=1;
@@ -20,6 +21,7 @@ int globalfd;
 
 struct waitqueue *head=NULL;
 struct waitqueue *next=NULL,*current =NULL;
+struct waitqueue *high = NULL, *mid = NULL, *low = NULL;
 
 /**********************调度程序*********************************/
 void scheduler()
@@ -37,7 +39,7 @@ void scheduler()
 
 #ifdef DEBUG
 	printf("Reading whether other process send command!\n");
-	if(count)					//这些东西都是怎么直接得到的。。。
+	if(count)
 		printf("cmd cmdtype\t%d\ncmd defpri\t%d\ncmd data\t%s\n",cmd.type,cmd.defpri,cmd.data);
 	else
 		printf("no data read\n");
@@ -164,7 +166,7 @@ int allocjid()
 /**********更新等待队列中的作业*********************/
 void updateall()
 {
-	struct waitqueue *p;
+	struct waitqueue *p, *prev, *q;//prev用来存储进行被提升等级的项的前一项
 	/* 更新作业运行时间 */
 #ifdef DEBUG6
 	int num, i = 0;
@@ -182,7 +184,47 @@ void updateall()
 	if(current)					//当前有任务current非NULL
 		current->job->run_time += 1; 		// 加1代表1000ms
 	/* 更新作业等待时间及优先级 */
-	for(p = head; p != NULL; p = p->next)
+	if(high != NULL){
+		for(p = high; p!= NULL; p = p->next){
+			p->job->wait_time += 1000;
+		}
+	}
+	if(mid != NULL){
+		for(p = mid, prev = mid; p != NULL;prev = p, p = p->next){
+			p->job->wait_time += 1000;
+			if(p->job->wait_time >= 10000){
+				prev->next = p->next;
+				if(high){
+					for(q = high; q->next != NULL; q = q->next);
+					q->next = p;
+					p->next = NULL;
+				}
+				else{
+					high = p;
+					high->next = NULL;
+				}
+			}
+		}
+	}
+	if(low != NULL){
+		for(p = low, prev = low; p != NULL; prev = p, p = p->next){
+			p->job->wait_time += 1000;
+			if(p->job->wait_time >= 10000){
+				prev->next = p->next;
+				if(mid){
+					for(q = high; q->next != NULL; q = q->next);
+					q->next = p;
+					p->next = NULL;
+				}
+				else{
+					mid = p;
+					mid->next = NULL;
+				}
+			}
+		}
+	}
+	//以前的代码
+	/*for(p = head; p != NULL; p = p->next)
 	{
 		p->job->wait_time += 1000;
 		if(p->job->wait_time >= 5000 && p->job->curpri < 3)	//找出哪些等待时间过长的。
@@ -190,7 +232,7 @@ void updateall()
 			p->job->curpri++;
 			p->job->wait_time = 0;			//不敢再等拉。。。。
 		}
-	}
+	}*/
 #ifdef DEBUG6
 	for(p = head, num = 1; p != NULL; p = p->next, num++)
 		printf("After the updata!\n"
@@ -212,9 +254,22 @@ struct waitqueue* jobselect()
 
 	select = NULL;
 	selectprev = NULL;
-	if(head)
+	if(high != NULL){
+		select = high;
+		high = NULL;
+	}
+	else if(mid != NULL){
+		select = mid;
+		mid = NULL;
+	}
+	else if(low != NULL){
+		select = low;
+		low = NULL;
+	}
+//以前的代码
+	/*if(head)
 	{
-		/* 遍历等待队列中的作业，找到优先级最高的作业 */
+		// 遍历等待队列中的作业，找到优先级最高的作业
 		for(prev = head, p = head; p != NULL; prev = p,p = p->next)
 			if(p->job->curpri > highest){
 				select = p;
@@ -224,7 +279,19 @@ struct waitqueue* jobselect()
 			selectprev->next = select->next;
 			if (select == selectprev)
 				head = NULL;
-	}
+	}*/
+#ifdef DEBUG8
+	if(select != NULL)
+	printf("Select job's information!\n"
+			"job_jid\t%d\n"
+			"job_pid\t%d\n"
+			"job_cmdarg\t0\n"
+			"job_defpri\t%d\n"
+			"job_curpri\t%d\n"
+			"job_ownerid\t%d\n"
+			"job_wait_time\t%d\n"
+			"job_run_time\t%d\n", select->job->jid, select->job->pid, select->job->defpri, select->job->curpri, select->job->ownerid,  select->job->wait_time, select->job->run_time);
+#endif
 	return select;
 }
 
@@ -268,12 +335,42 @@ void jobswitch()
 		current->job->state = READY;
 
 		/* 放回等待队列 */
-		if(head){
+		switch(current->job->curpri){
+		case 3:
+			if(high != NULL){
+				for(p = head; p->next != NULL; p = p->next);
+				p->next = current;
+			}
+			else{
+				high = current;
+			}
+			break;
+		case 2:
+			if(mid != NULL){
+				for(p = mid; p->next != NULL; p = p->next);
+				p->next = current;
+			}
+			else{
+				mid = current;
+			}
+			break;
+		case 1:
+			if(low != NULL){
+				for(p = low; p->next != NULL; p = p->next);
+				p->next = current;
+			}
+			else{
+				low = current;
+			}
+			break;
+		}
+//以前的代码
+		/*if(head){
 			for(p = head; p->next != NULL; p = p->next);
 			p->next = current;
 		}else{
 			head = current;
-		}
+		}*/
 		current = next;
 		next = NULL;
 		current->job->state = RUNNING;
@@ -284,6 +381,7 @@ void jobswitch()
 		return;
 	}
 }
+
 /****************************************************/
 /***************信号处理函数**************************/
 void sig_handler(int sig,siginfo_t *info,void *notused)
@@ -373,14 +471,44 @@ void do_enq(struct jobinfo *newjob,struct jobcmd enqcmd)
 	newnode->next =NULL;
 	newnode->job=newjob;
 
-	if(head)		//说明当前等待队列中是有作业的
+	switch (newnode->job->curpri){
+		case 3:
+			if(high != NULL)
+			{
+				for(p = high; p->next != NULL; p = p->next);
+				p->next = newnode;
+			}
+			else
+				high = newnode;
+			break;
+		case 2:
+			if(mid != NULL)
+			{
+				for(p = mid; p->next != NULL; p = p->next);
+				p->next = newnode;
+			}
+			else
+				mid = newnode;
+			break;
+		case 1:
+			if(low != NULL)
+			{
+				for(p = low; p->next != NULL; p = p->next);
+				p->next = newnode;
+			}
+			else
+				low = newnode;
+			break;
+	}
+//以前的代码
+	/*if(head)		//说明当前等待队列中是有作业的
 	{
 		for(p=head;p->next != NULL; p=p->next)
 			;
 		p->next =newnode;
 	}
 	else
-		head=newnode;
+		head=newnode;*/
 
 	/*为作业创建进程*/
 	if((pid=fork())<0)
@@ -431,10 +559,48 @@ void do_deq(struct jobcmd deqcmd)
 		current=NULL;
 	}
 	else						//或者在等待队列中查找deqid
-	{ 
+	{
 		select=NULL;
 		selectprev=NULL;
-		if(head)
+		//扫描所有非空队列，找到目标ID
+		if(high){
+			for(prev = high, p = high; p != NULL; prev = p, p = p->next)
+				if(p->job->jid == deqid)
+				{
+					select = p;
+					selectprev = prev;
+					break;
+				}
+			selectprev->next = select->next;
+			if(select == selectprev)		//说明等待队列中就一个作业
+				high = NULL;
+		}
+		if(mid){
+			for(prev = mid, p = mid; p != NULL; prev = p, p = p->next)
+				if(p->job->jid == deqid)
+				{
+					select = p;
+					selectprev = prev;
+					break;
+				}
+			selectprev->next = select->next;
+			if(select == selectprev)		//说明等待队列中就一个作业
+				mid = NULL;
+		}
+		if(low){
+			for(prev = low, p = low; p != NULL; prev = p, p = p->next)
+				if(p->job->jid == deqid)
+				{
+					select = p;
+					selectprev = prev;
+					break;
+				}
+			selectprev->next = select->next;
+			if(select == selectprev)		//说明等待队列中就一个作业
+				low = NULL;
+		}
+//以前的代码
+		/*if(head)
 		{
 			for(prev=head,p=head;p!=NULL;prev=p,p=p->next)
 				if(p->job->jid==deqid)
@@ -446,7 +612,7 @@ void do_deq(struct jobcmd deqcmd)
 			selectprev->next=select->next;
 			if(select==selectprev)			//说明等待队列中就一个作业
 				head=NULL;
-		}
+		}*/
 		if(select)					//如果不是一个作业的话
 		{
 			for(i=0;(select->job->cmdarg)[i]!=NULL;i++)
@@ -490,8 +656,7 @@ void do_stat(struct jobcmd statcmd)
 			current->job->wait_time,
 			timebuf,"RUNNING");
 	}
-
-	for(p=head;p!=NULL;p=p->next){
+	for(p = high; p != NULL; p = p->next){
 		strcpy(timebuf,ctime(&(p->job->create_time)));
 		timebuf[strlen(timebuf)-1]='\0';
 		printf("%d\t%d\t%d\t%d\t%d\t%s\t%s\n",
@@ -503,6 +668,43 @@ void do_stat(struct jobcmd statcmd)
 			timebuf,
 			"READY");
 	}
+	for(p = mid; p != NULL; p = p->next){
+		strcpy(timebuf,ctime(&(p->job->create_time)));
+		timebuf[strlen(timebuf)-1]='\0';
+		printf("%d\t%d\t%d\t%d\t%d\t%s\t%s\n",
+			p->job->jid,
+			p->job->pid,
+			p->job->ownerid,
+			p->job->run_time,
+			p->job->wait_time,
+			timebuf,
+			"READY");
+	}
+	for(p = low; p != NULL; p = p->next){
+		strcpy(timebuf,ctime(&(p->job->create_time)));
+		timebuf[strlen(timebuf)-1]='\0';
+		printf("%d\t%d\t%d\t%d\t%d\t%s\t%s\n",
+			p->job->jid,
+			p->job->pid,
+			p->job->ownerid,
+			p->job->run_time,
+			p->job->wait_time,
+			timebuf,
+			"READY");
+	}
+//以前的代码
+	/*for(p=head;p!=NULL;p=p->next){
+		strcpy(timebuf,ctime(&(p->job->create_time)));
+		timebuf[strlen(timebuf)-1]='\0';
+		printf("%d\t%d\t%d\t%d\t%d\t%s\t%s\n",
+			p->job->jid,
+			p->job->pid,
+			p->job->ownerid,
+			p->job->run_time,
+			p->job->wait_time,
+			timebuf,
+			"READY");
+	}*/
 }
 /**********************************************************/
 /********************主函数入口****************************/
