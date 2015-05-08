@@ -10,7 +10,8 @@
 #include <time.h>
 #include "job.h"
 
-#define DEBUG6
+//#define DEBUG6
+#define DEBUG7
 
 int jobid=0;
 int siginfo=1;
@@ -25,6 +26,10 @@ void scheduler()
 {
 	struct jobinfo *newjob=NULL;		//作业信息结构体
 	struct jobcmd cmd;			//作业调度命令
+#ifdef DEBUG7
+	struct waitqueue *p;
+	int num, i = 0;
+#endif
 	int  count = 0;
 	bzero(&cmd,DATALEN);			//置字节字符串前n个字节为零且包括‘\0’
 	if((count=read(fifo,&cmd,DATALEN))<0)
@@ -49,19 +54,91 @@ void scheduler()
 			#ifdef DEBUG
 				printf("Execute enq!\n");
 			#endif
+#ifdef DEBUG7
+		printf("Before the ENQ\n");
+	for(p = head, num = 1; p != NULL; p = p->next, num++)
+		printf(	"job%d_jid\t%d\n"
+			"job%d_pid\t%d\n"
+			"0\n"
+			"job%d_defpri\t%d\n"
+			"job%d_curpri\t%d\n"
+			"job%d_ownerid\t%d\n"
+			"job%d_wait_time\t%d\n"
+			"job%d_run_time\t%d\n", num, p->job->jid, num, p->job->pid, num, p->job->defpri, num, p->job->curpri, num, p->job->ownerid, num, p->job->wait_time, num, p->job->run_time);
+#endif
 			do_enq(newjob,cmd);
+#ifdef DEBUG7
+		printf("After the ENQ!\n");
+	for(p = head, num = 1; p != NULL; p = p->next, num++)
+		printf("job%d_jid\t%d\n"
+			"job%d_pid\t%d\n"
+			"0\n"
+			"job%d_defpri\t%d\n"
+			"job%d_curpri\t%d\n"
+			"job%d_ownerid\t%d\n"
+			"job%d_wait_time\t%d\n"
+			"job%d_run_time\t%d\n", num, p->job->jid, num, p->job->pid, num, p->job->defpri, num, p->job->curpri, num, p->job->ownerid, num, p->job->wait_time, num, p->job->run_time);
+#endif
 			break;
 		case DEQ:
 			#ifdef DEBUG
 				printf("Execute deq!\n");
 			#endif
+#ifdef DEBUG7
+		printf("Before the DEQ!\n");
+	for(p = head, num = 1; p != NULL; p = p->next, num++)
+		printf("job%d_jid\t%d\n"
+			"job%d_pid\t%d\n"
+			"0\n"
+			"job%d_defpri\t%d\n"
+			"job%d_curpri\t%d\n"
+			"job%d_ownerid\t%d\n"
+			"job%d_wait_time\t%d\n"
+			"job%d_run_time\t%d\n", num, p->job->jid, num, p->job->pid, num, p->job->defpri, num, p->job->curpri, num, p->job->ownerid, num, p->job->wait_time, num, p->job->run_time);
+#endif
 			do_deq(cmd);
+#ifdef DEBUG7
+			printf("After the DEQ!\n");
+	for(p = head, num = 1; p != NULL; p = p->next, num++)
+		printf("job%d_jid\t%d\n"
+			"job%d_pid\t%d\n"
+			"0\n"
+			"job%d_defpri\t%d\n"
+			"job%d_curpri\t%d\n"
+			"job%d_ownerid\t%d\n"
+			"job%d_wait_time\t%d\n"
+			"job%d_run_time\t%d\n", num, p->job->jid, num, p->job->pid, num, p->job->defpri, num, p->job->curpri, num, p->job->ownerid, num, p->job->wait_time, num, p->job->run_time);
+#endif
 			break;
 		case STAT:
 			#ifdef DEBUG
 				printf("Execute stat!\n");
 			#endif
+#ifdef DEBUG7
+		printf("Before the STAT!\n");
+	for(p = head, num = 1; p != NULL; p = p->next, num++)
+		printf("job%d_jid\t%d\n"
+			"job%d_pid\t%d\n"
+			"0\n"
+			"job%d_defpri\t%d\n"
+			"job%d_curpri\t%d\n"
+			"job%d_ownerid\t%d\n"
+			"job%d_wait_time\t%d\n"
+			"job%d_run_time\t%d\n", num, p->job->jid, num, p->job->pid, num, p->job->defpri, num, p->job->curpri, num, p->job->ownerid, num, p->job->wait_time, num, p->job->run_time);
+#endif
 			do_stat(cmd);
+#ifdef DEBUG7
+		printf("After the STAT!\n");
+	for(p = head, num = 1; p != NULL; p = p->next, num++)
+		printf("job%d_jid\t%d\n"
+			"job%d_pid\t%d\n"
+			"0\n"
+			"job%d_defpri\t%d\n"
+			"job%d_curpri\t%d\n"
+			"job%d_ownerid\t%d\n"
+			"job%d_wait_time\t%d\n"
+			"job%d_run_time\t%d\n", num, p->job->jid, num, p->job->pid, num, p->job->defpri, num, p->job->curpri, num, p->job->ownerid, num, p->job->wait_time, num, p->job->run_time);
+#endif
 			break;
 		default:
 			break;
@@ -116,7 +193,7 @@ void updateall()
 	}
 #ifdef DEBUG6
 	for(p = head, num = 1; p != NULL; p = p->next, num++)
-		printf("Before the updata!\n"
+		printf("After the updata!\n"
 			"job%d_jid\t%d\n"
 			"job%d_pid\t%d\n"
 			"0\n"
