@@ -133,7 +133,7 @@ void jobswitch()
 			free((current->job->cmdarg)[i]);
 			(current->job->cmdarg)[i] = NULL;
 		}
-		/* ÊÍ·Å¿Õ¼ä */
+		/* é‡Šæ”¾ç©ºé—´ */
 		free(current->job->cmdarg);
 		free(current->job);
 		free(current);
@@ -246,7 +246,7 @@ void do_enq(struct jobinfo *newjob,struct jobcmd enqcmd)
 
 	sigemptyset(&zeromask);
 
-	/* ·â×°jobinfoÊı¾İ½á¹¹ */
+	/* å°è£…jobinfoæ•°æ®ç»“æ„ */
 	newjob = (struct jobinfo *)malloc(sizeof(struct jobinfo));
 	newjob->jid = allocjid();
 	newjob->defpri = enqcmd.defpri;
@@ -374,17 +374,17 @@ void do_stat(struct jobcmd statcmd)
 	struct waitqueue *p;
 	char timebuf[BUFLEN];
 	/*
-	*´òÓ¡ËùÓĞ×÷ÒµµÄÍ³¼ÆĞÅÏ¢:
-	*1.×÷ÒµID
-	*2.½ø³ÌID
-	*3.×÷ÒµËùÓĞÕß
-	*4.×÷ÒµÔËĞĞÊ±¼ä
-	*5.×÷ÒµµÈ´ıÊ±¼ä
-	*6.×÷Òµ´´½¨Ê±¼ä
-	*7.×÷Òµ×´Ì¬
+	*æ‰“å°æ‰€æœ‰ä½œä¸šçš„ç»Ÿè®¡ä¿¡æ¯:
+	*1.ä½œä¸šID
+	*2.è¿›ç¨‹ID
+	*3.ä½œä¸šæ‰€æœ‰è€…
+	*4.ä½œä¸šè¿è¡Œæ—¶é—´
+	*5.ä½œä¸šç­‰å¾…æ—¶é—´
+	*6.ä½œä¸šåˆ›å»ºæ—¶é—´
+	*7.ä½œä¸šçŠ¶æ€
 	*/
 
-	/* ´òÓ¡ĞÅÏ¢Í·²¿ */
+	/* æ‰“å°ä¿¡æ¯å¤´éƒ¨ */
 	printf("JOBID\tPID\tOWNER\tRUNTIME\tWAITTIME\tCREATTIME\t\tSTATE\n");
 	if(current){
 		strcpy(timebuf,ctime(&(current->job->create_time)));
@@ -438,7 +438,7 @@ int main()
 	sigaction(SIGCHLD,&newact,&oldact1);
 	sigaction(SIGVTALRM,&newact,&oldact2);
 
-	/* ÉèÖÃÊ±¼ä¼ä¸ôÎª1000ºÁÃë */
+	/* è®¾ç½®æ—¶é—´é—´éš”ä¸º1000æ¯«ç§’ */
 	interval.tv_sec=1;
 	interval.tv_usec=0;
 
